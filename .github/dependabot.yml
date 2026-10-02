@@ -1,0 +1,13 @@
+# The actions are pinned to commits and moved only by review: weekly, all in one pull request, and a
+# release younger than three days is not taken.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 3
+    groups:
+      actions:
+        patterns: ['*']

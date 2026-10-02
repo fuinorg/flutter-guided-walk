@@ -1,0 +1,9 @@
+{
+  "title": "A first walk",
+  "steps": [
+    {"say": "Type your name.", "at": "name", "then": "filled:name"},
+    {"say": "Press „Greet me“.", "at": "greet", "then": "greeting"},
+    {"say": "Close the greeting.", "at": "greeting-close", "then": "!greeting"},
+    {"say": "That is all. Write something below and send it.", "at": []}
+  ]
+}
