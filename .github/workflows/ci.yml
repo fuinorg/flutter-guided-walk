@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  # Not on a tag: it names a commit that was built on main already. Not for Markdown alone: no
+  # build or test reads it.
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          cache: true
+      - name: What a Linux build needs
+        run: sudo apt-get update && sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+      - name: The example builds, and the Linux part's own tests pass
+        working-directory: example
+        run: |
+          flutter build linux --debug
+          build/linux/x64/debug/plugins/guided_walk/guided_walk_test

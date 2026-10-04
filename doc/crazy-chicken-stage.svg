@@ -1,0 +1,160 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 400" width="720" height="400" role="img" aria-labelledby="t d">
+  <title id="t">Work in progress - Crazy Chicken Stage</title>
+  <desc id="d">A mad scientist with wild hair brews a bubbling green potion in an Erlenmeyer flask, beside a round-bottom flask, test tubes and a Bunsen burner.</desc>
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b2f4a"/>
+      <stop offset="1" stop-color="#1b1e33"/>
+    </linearGradient>
+    <linearGradient id="potion" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9dff6b"/>
+      <stop offset="1" stop-color="#2fb84a"/>
+    </linearGradient>
+    <linearGradient id="pink" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff8fd8"/>
+      <stop offset="1" stop-color="#c2368f"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7fd6ff"/>
+      <stop offset="1" stop-color="#2a7fd1"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#b6ff7a" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#b6ff7a" stop-opacity="0"/>
+    </radialGradient>
+    <style>
+      .glass { fill: rgba(220,240,255,0.18); stroke: #d8e9ff; stroke-width: 3; }
+      .bubble { fill: #c8ff9e; opacity: 0.85; }
+      .rise1 { animation: rise 2.4s ease-in infinite; }
+      .rise2 { animation: rise 2.4s ease-in infinite 0.8s; }
+      .rise3 { animation: rise 2.4s ease-in infinite 1.6s; }
+      .rise4 { animation: rise 3s ease-in infinite 0.4s; }
+      .flame { animation: flick 0.35s ease-in-out infinite alternate; transform-origin: 470px 318px; }
+      .blink { animation: blink 1.2s steps(2) infinite; }
+      @keyframes rise {
+        0%   { transform: translateY(0) scale(0.6); opacity: 0; }
+        15%  { opacity: 0.9; }
+        100% { transform: translateY(-110px) scale(1.25); opacity: 0; }
+      }
+      @keyframes flick { from { transform: scaleY(0.85); } to { transform: scaleY(1.15); } }
+      @keyframes blink { 50% { opacity: 0; } }
+      @media (prefers-reduced-motion: reduce) {
+        .rise1, .rise2, .rise3, .rise4, .flame, .blink { animation: none; }
+      }
+    </style>
+  </defs>
+
+  <!-- room -->
+  <rect width="720" height="400" rx="18" fill="url(#wall)"/>
+  <g stroke="#3a3f63" stroke-width="2" opacity="0.6">
+    <line x1="0" y1="80" x2="720" y2="80"/><line x1="0" y1="160" x2="720" y2="160"/>
+    <line x1="0" y1="240" x2="720" y2="240"/>
+  </g>
+  <!-- shelf with jars -->
+  <rect x="470" y="70" width="220" height="8" rx="3" fill="#6b4a2f"/>
+  <rect x="490" y="38" width="26" height="32" rx="5" fill="url(#pink)" opacity="0.85"/>
+  <rect x="528" y="30" width="22" height="40" rx="5" fill="url(#blue)" opacity="0.85"/>
+  <circle cx="580" cy="56" r="14" fill="#ffd34d" opacity="0.85"/>
+  <rect x="604" y="44" width="30" height="26" rx="5" fill="#b38cff" opacity="0.85"/>
+  <!-- bench -->
+  <rect x="0" y="320" width="720" height="80" fill="#4a3424"/>
+  <rect x="0" y="314" width="720" height="10" fill="#7a5638"/>
+
+  <!-- scientist -->
+  <g>
+    <!-- lab coat -->
+    <path d="M70 320 L95 210 Q150 190 205 210 L230 320 Z" fill="#f4f6fb" stroke="#c9cfdd" stroke-width="3"/>
+    <path d="M150 205 L150 320" stroke="#c9cfdd" stroke-width="3"/>
+    <circle cx="150" cy="240" r="3" fill="#9aa3b8"/><circle cx="150" cy="268" r="3" fill="#9aa3b8"/>
+    <!-- the other arm, raised in triumph with a test tube -->
+    <path d="M100 228 Q66 222 54 184" stroke="#f4f6fb" stroke-width="22" stroke-linecap="round" fill="none"/>
+    <path d="M100 228 Q66 222 54 184" stroke="#c9cfdd" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.6"/>
+    <g transform="rotate(-18 50 160)">
+      <rect x="44" y="128" width="13" height="40" rx="6.5" class="glass"/>
+      <rect x="46" y="146" width="9" height="20" rx="4.5" fill="url(#pink)"/>
+    </g>
+    <circle cx="53" cy="176" r="12" fill="#f2c9a5"/>
+    <!-- arm reaching to the flask -->
+    <path d="M200 225 Q260 230 300 250" stroke="#f4f6fb" stroke-width="22" stroke-linecap="round" fill="none"/>
+    <circle cx="304" cy="252" r="12" fill="#f2c9a5"/>
+    <!-- ears -->
+    <ellipse cx="109" cy="168" rx="9" ry="14" fill="#f2c9a5" stroke="#d9a982" stroke-width="2"/>
+    <ellipse cx="191" cy="168" rx="9" ry="14" fill="#f2c9a5" stroke="#d9a982" stroke-width="2"/>
+    <path d="M106 162 Q111 168 106 175" stroke="#d9a982" stroke-width="2" fill="none"/>
+    <path d="M194 162 Q189 168 194 175" stroke="#d9a982" stroke-width="2" fill="none"/>
+    <!-- head -->
+    <circle cx="150" cy="165" r="42" fill="#f2c9a5"/>
+    <!-- wild hair: sharp spikes standing up and out -->
+    <path d="M112 150 L88 140 L106 132 L80 112 L108 114 L96 86 L122 102 L124 70 L140 96 L152 62 L162 94 L182 68 L180 100 L208 88 L194 114 L222 112 L196 132 L214 142 L190 150 Q150 118 112 150 Z"
+          fill="#e4e7ee" stroke="#9aa1b3" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M124 104 L138 118 M150 76 L152 112 M176 104 L162 118" stroke="#b9bfcd" stroke-width="2" fill="none"/>
+    <!-- goggles -->
+    <circle cx="134" cy="160" r="14" fill="#c9f1ff" stroke="#3b3f55" stroke-width="5"/>
+    <circle cx="168" cy="160" r="14" fill="#c9f1ff" stroke="#3b3f55" stroke-width="5"/>
+    <line x1="148" y1="160" x2="154" y2="160" stroke="#3b3f55" stroke-width="5"/>
+    <circle cx="137" cy="163" r="5" fill="#1b1e33"/><circle cx="165" cy="157" r="5" fill="#1b1e33"/>
+    <!-- grin -->
+    <path d="M132 186 Q150 204 170 186" stroke="#7a3b2e" stroke-width="4" fill="#fff" stroke-linejoin="round"/>
+    <!-- eyebrows -->
+    <path d="M120 140 L146 146" stroke="#d6d9e2" stroke-width="6" stroke-linecap="round"/>
+    <path d="M182 136 L158 146" stroke="#d6d9e2" stroke-width="6" stroke-linecap="round"/>
+  </g>
+
+  <!-- glow behind the brew -->
+  <circle cx="360" cy="250" r="95" fill="url(#glow)"/>
+
+  <!-- Erlenmeyer flask with green potion -->
+  <g>
+    <path d="M345 170 L345 215 L300 312 Q298 318 306 318 L414 318 Q422 318 420 312 L375 215 L375 170 Z" class="glass"/>
+    <path d="M322 265 L398 265 L418 312 Q420 316 414 316 L306 316 Q300 316 302 312 Z" fill="url(#potion)"/>
+    <rect x="340" y="164" width="40" height="10" rx="3" fill="#d8e9ff"/>
+    <circle cx="335" cy="295" r="5" class="bubble rise1"/>
+    <circle cx="360" cy="300" r="7" class="bubble rise2"/>
+    <circle cx="385" cy="292" r="4" class="bubble rise3"/>
+    <circle cx="360" cy="230" r="9" class="bubble rise4"/>
+  </g>
+
+  <!-- round-bottom flask on a Bunsen burner, pink brew -->
+  <g>
+    <rect x="455" y="285" width="30" height="30" rx="4" fill="#5d6178"/>
+    <rect x="461" y="255" width="18" height="34" fill="#7b8098"/>
+    <path class="flame" d="M470 254 Q458 236 470 214 Q482 236 470 254 Z" fill="#5fb6ff"/>
+    <path class="flame" d="M470 252 Q464 240 470 228 Q476 240 470 252 Z" fill="#c9ecff"/>
+    <rect x="462" y="148" width="16" height="40" class="glass"/>
+    <circle cx="470" cy="208" r="30" class="glass"/>
+    <path d="M442 214 Q470 232 498 214 A30 30 0 0 1 442 214 Z" fill="url(#pink)"/>
+    <circle cx="462" cy="160" r="4" fill="#ffc2ec" class="rise2"/>
+    <circle cx="476" cy="150" r="3" fill="#ffc2ec" class="rise3"/>
+  </g>
+
+  <!-- test tube rack -->
+  <g>
+    <rect x="560" y="280" width="120" height="12" rx="3" fill="#6b4a2f"/>
+    <rect x="560" y="300" width="120" height="14" rx="3" fill="#6b4a2f"/>
+    <rect x="575" y="230" width="16" height="70" rx="8" class="glass"/>
+    <rect x="577" y="262" width="12" height="36" rx="6" fill="url(#blue)"/>
+    <rect x="612" y="230" width="16" height="70" rx="8" class="glass"/>
+    <rect x="614" y="252" width="12" height="46" rx="6" fill="#ffd34d"/>
+    <rect x="649" y="230" width="16" height="70" rx="8" class="glass"/>
+    <rect x="651" y="270" width="12" height="28" rx="6" fill="url(#potion)"/>
+  </g>
+
+  <!-- the chicken, the stage's mascot, perched on the flask -->
+  <g transform="translate(358 128)">
+    <ellipse cx="0" cy="12" rx="22" ry="17" fill="#fff6e0" stroke="#d9c79c" stroke-width="2"/>
+    <circle cx="16" cy="-6" r="11" fill="#fff6e0" stroke="#d9c79c" stroke-width="2"/>
+    <path d="M12 -17 Q16 -26 20 -17 Q24 -25 26 -14" fill="#e3342f"/>
+    <path d="M26 -6 L35 -3 L26 0 Z" fill="#ffb02e"/>
+    <circle cx="19" cy="-8" r="2.4" fill="#1b1e33"/>
+    <path d="M-20 6 Q-32 0 -26 16" fill="#fff6e0" stroke="#d9c79c" stroke-width="2"/>
+    <line x1="-6" y1="28" x2="-8" y2="36" stroke="#ffb02e" stroke-width="3"/>
+    <line x1="6" y1="28" x2="8" y2="36" stroke="#ffb02e" stroke-width="3"/>
+  </g>
+
+  <!-- texts -->
+  <g font-family="'Comic Sans MS','Chalkboard SE','Segoe Print',sans-serif" text-anchor="end">
+    <rect x="452" y="336" width="252" height="52" rx="10" fill="#ffd34d" stroke="#1b1e33" stroke-width="3" transform="rotate(-3 578 362)"/>
+    <text x="690" y="358" font-size="22" font-weight="700" fill="#1b1e33" transform="rotate(-3 578 362)">Work in progress<tspan class="blink">…</tspan></text>
+    <text x="690" y="380" font-size="15" fill="#1b1e33" transform="rotate(-3 578 362)">Crazy Chicken Stage</text>
+  </g>
+</svg>
