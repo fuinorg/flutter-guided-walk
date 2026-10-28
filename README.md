@@ -79,7 +79,7 @@ dependencies:
   guided_walk:
     git:
       url: https://github.com/fuinorg/flutter-guided-walk.git
-      ref: v0.2.0
+      ref: v0.3.0
 ```
 
 `main.dart`:

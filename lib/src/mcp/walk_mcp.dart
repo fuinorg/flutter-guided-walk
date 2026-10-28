@@ -131,7 +131,7 @@ class WalkMcpServer {
       'capabilities': <String, Object?>{
         'tools': <String, Object?>{'listChanged': false},
       },
-      'serverInfo': <String, Object?>{'name': 'guided-walk', 'version': '0.2.0'},
+      'serverInfo': <String, Object?>{'name': 'guided-walk', 'version': '0.3.0'},
       'instructions': 'Leads a person through a Flutter app beside its window. Write the walk with '
           'walk_set, wait for what the person says with walk_wait, answer with walk_say, and look at '
           'the window with walk_look. walk_status says which step is shown, and whether the person has put '

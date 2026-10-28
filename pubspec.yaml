@@ -1,6 +1,6 @@
 name: guided_walk
 description: "Lets an AI agent guide a person through any Flutter app step by step, with pointers, a live chat and the app's state, secrets blanked, in development builds only."
-version: 0.2.0
+version: 0.3.0
 homepage: https://github.com/fuinorg/flutter-guided-walk
 publish_to: none
 
