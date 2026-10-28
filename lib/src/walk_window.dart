@@ -70,6 +70,10 @@ File walkWindowLayoutFile(String socket) => File('${File(socket).parent.path}/pa
 /// what is on screen, the ball, the window's image — and the panel only shows and asks. The two
 /// talk over a socket in the walk's folder, one JSON object a line: the interface sends what to show,
 /// the panel sends what was pressed.
+///
+/// At most one window process is started at a time. One that does not answer on the socket within
+/// [answerWithin] is ended, and the panel stays beside the interface: the program started may not be
+/// this app any more, after a rebuild for instance.
 class WalkWindowHost extends ChangeNotifier {
   /// Constructor taking the socket's path and what to do with what the panel sends.
   WalkWindowHost(this.path, {required this.onCommand, this.onClosed, this.start = _startTheWindow});
@@ -83,8 +87,18 @@ class WalkWindowHost extends ChangeNotifier {
   /// The person closed the window: the walk is put away, and comes back in its window when shown.
   final VoidCallback? onClosed;
 
-  /// How the second window is started; a test starts nothing.
-  final Future<void> Function(String path) start;
+  /// How the second window is started, giving the process to end where it does not answer; a test
+  /// starts nothing, or a stand-in.
+  final Future<Process?> Function(String path) start;
+
+  /// How long a window started has to answer on the socket before it is ended.
+  static Duration answerWithin = const Duration(seconds: 6);
+
+  Process? _started;
+  Timer? _answering;
+
+  /// Whether the window last asked for did not answer, so the panel stayed beside the interface.
+  bool failed = false;
 
   ServerSocket? _server;
   Timer? _forgetting;
@@ -105,13 +119,14 @@ class WalkWindowHost extends ChangeNotifier {
   /// plugin's Linux part opens the window at it.
   static const sizeVariable = 'GUIDED_WALK_WINDOW_SIZE';
 
-  static Future<void> _startTheWindow(String path) async {
+  static Future<Process?> _startTheWindow(String path) async {
     final layout = WalkWindowLayout.read(walkWindowLayoutFile(path));
     final environment = Map<String, String>.of(Platform.environment)..[variable] = path;
     // The size it was last made; the plugin's Linux part opens the window at it.
     if (layout.width case final width?) environment[sizeVariable] = '${width}x${layout.height ?? 860}';
-    await Process.start(Platform.resolvedExecutable, const <String>[],
-        environment: environment, includeParentEnvironment: false, mode: ProcessStartMode.detached);
+    // Not detached: a child of the app shares its terminal and its process group, and can be ended.
+    return Process.start(Platform.resolvedExecutable, const <String>[],
+        environment: environment, includeParentEnvironment: false, mode: ProcessStartMode.inheritStdio);
   }
 
   File get _layout => walkWindowLayoutFile(path);
@@ -122,23 +137,65 @@ class WalkWindowHost extends ChangeNotifier {
   /// Whether the panel had a window of its own when the interface was last left.
   bool get wasDetached => WalkWindowLayout.read(_layout).detached;
 
-  /// Opens the window, listening first so it finds the socket.
+  /// Opens the window, listening first so it finds the socket; nothing where one is there or is
+  /// still on its way.
   Future<void> detach() async {
     _docking = false;
-    _keep(detached: true);
-    if (_server == null) {
-      final stale = File(path);
-      if (stale.existsSync()) stale.deleteSync();
-      final server = await ServerSocket.bind(InternetAddress(path, type: InternetAddressType.unix), 0);
-      _server = server;
-      server.listen(_welcome);
+    if (_panel != null || (_answering?.isActive ?? false)) return;
+    _end();
+    if (failed) {
+      failed = false;
+      notifyListeners();
     }
-    await start(path);
+    final Process? process;
+    try {
+      if (_server == null) {
+        final stale = File(path);
+        if (stale.existsSync()) stale.deleteSync();
+        final server = await ServerSocket.bind(InternetAddress(path, type: InternetAddressType.unix), 0);
+        _server = server;
+        server.listen(_welcome);
+      }
+      process = await start(path);
+    } on IOException {
+      // A folder whose path is too long for a socket, or a program that is not there.
+      _fail();
+      return;
+    }
+    _started = process;
+    unawaited(process?.exitCode.then((_) {
+      if (_started == process) _started = null;
+    }));
+    _answering = Timer(answerWithin, () {
+      if (_panel == null) _fail();
+    });
+  }
+
+  void _fail() {
+    _end();
+    failed = true;
+    _keep(detached: false);
+    notifyListeners();
+  }
+
+  /// Ends the window process started last, firmly where it does not go when asked.
+  void _end() {
+    _answering?.cancel();
+    final process = _started;
+    _started = null;
+    if (process == null) return;
+    process.kill();
+    unawaited(process.exitCode.timeout(const Duration(seconds: 2), onTimeout: () {
+      process.kill(ProcessSignal.sigkill);
+      return -1;
+    }));
   }
 
   void _welcome(Socket panel) {
+    _answering?.cancel();
     _panel?.destroy();
     _panel = panel;
+    _keep(detached: true);
     _shown = '';
     if (_last case final last?) show(last);
     notifyListeners();
@@ -197,10 +254,17 @@ class WalkWindowHost extends ChangeNotifier {
 
   bool _docking = false;
 
+  /// Ends the window process this started, as the interface goes.
+  void endWindow() {
+    _panel?.destroy();
+    _panel = null;
+    _end();
+  }
+
   @override
   void dispose() {
     _forgetting?.cancel();
-    _panel?.destroy();
+    endWindow();
     unawaited(_server?.close());
     final socket = File(path);
     if (socket.existsSync()) socket.deleteSync();
@@ -211,7 +275,11 @@ class WalkWindowHost extends ChangeNotifier {
 /// This program as the walk's window, talking to the app at [path].
 class WalkWindowApp extends StatefulWidget {
   /// Constructor taking the socket's path, and the app's look and words.
-  const WalkWindowApp(this.path, {this.theme, this.darkTheme, this.texts = const WalkPanelTexts(), super.key});
+  const WalkWindowApp(this.path,
+      {this.theme, this.darkTheme, this.texts = const WalkPanelTexts(), this.commentLines = 4, super.key});
+
+  /// How many lines the panel's field to write in keeps at the least.
+  final int commentLines;
 
   /// Where the interface listens.
   final String path;
@@ -307,6 +375,7 @@ class _WalkWindowAppState extends State<WalkWindowApp> {
                   onClear: () => _do(<String, Object?>{'do': 'clear'}),
                   onClose: () => _do(<String, Object?>{'do': 'close'}),
                   texts: widget.texts,
+                  commentLines: widget.commentLines,
                   styleFile: File('${File(widget.path).parent.path}/panel-style.json'),
                 );
 }

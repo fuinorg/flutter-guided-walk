@@ -44,6 +44,7 @@ void main() {
     var closed = 0;
     final host = WalkWindowHost(path, onCommand: commands.add, onClosed: () => closed++, start: (path) async {
       window = await Socket.connect(InternetAddress(path, type: InternetAddressType.unix), 0);
+      return null;
     });
     final opened = Completer<void>();
     host.addListener(() {
@@ -90,6 +91,69 @@ void main() {
     expect(host.wasDetached, isTrue, reason: 'and comes back in its window when shown');
     host.dispose();
     expect(File(path).existsSync(), isFalse, reason: 'the socket goes with the interface');
+  });
+
+  test('a window that does not answer is ended, one at a time, and the panel stays beside the interface', () async {
+    final path = walkWindowSocket(here.path);
+    final started = <Process>[];
+    WalkWindowHost.answerWithin = const Duration(milliseconds: 300);
+    addTearDown(() => WalkWindowHost.answerWithin = const Duration(seconds: 6));
+    // Left in a window of its own last time.
+    const WalkWindowLayout(detached: true).write(walkWindowLayoutFile(path));
+    // A program that never opens the socket, as an app's executable rebuilt with other code.
+    final host = WalkWindowHost(path, onCommand: (_) {}, start: (_) async {
+      final process = await Process.start('sleep', const <String>['60']);
+      started.add(process);
+      return process;
+    });
+    await host.detach();
+    await host.detach();
+    await host.detach();
+    expect(started, hasLength(1), reason: 'pressed again while the first is on its way, nothing more is started');
+    await started.single.exitCode.timeout(const Duration(seconds: 5));
+    expect(host.failed, isTrue, reason: 'the panel says so');
+    expect(host.open, isFalse);
+    expect(WalkWindowLayout.read(walkWindowLayoutFile(path)).detached, isFalse,
+        reason: 'the next start does not wait for a window that never came');
+
+    await host.detach();
+    expect(host.failed, isFalse, reason: 'asked again, it is tried again');
+    expect(started, hasLength(2));
+    host.dispose();
+    await started.last.exitCode.timeout(const Duration(seconds: 5), onTimeout: () => fail('ended with the interface'));
+  });
+
+  test('a window that cannot be started leaves the panel beside the interface, and says so', () async {
+    final path = walkWindowSocket(here.path);
+    final host = WalkWindowHost(path, onCommand: (_) {}, start: (_) => Process.start('${here.path}/not-there', const <String>[]));
+    await host.detach();
+    expect(host.failed, isTrue);
+    expect(WalkWindowLayout.read(walkWindowLayoutFile(path)).detached, isFalse);
+    host.dispose();
+  });
+
+  testWidgets('a long step leaves the field to write in its lines', (tester) async {
+    tester.view
+      ..physicalSize = const Size(340, 1000)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final paragraph = List<String>.filled(30, 'paragraph').join(' ');
+    final say = List<String>.filled(4, paragraph).join('\n\n');
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: WalkPanel(
+          view: WalkPanelView(title: 'A long walk', steps: <String>[say, say, say], index: 2),
+          onBack: () {},
+          onNext: () {},
+          onSend: (_, {required withText}) {},
+        ),
+      ),
+    ));
+    final field = find.descendant(of: find.byKey(const Key('walk-comment')), matching: find.byType(EditableText));
+    final lineHeight = tester.widget<EditableText>(field).style.fontSize! * 1.4;
+    expect(tester.getSize(field).height, greaterThanOrEqualTo(4 * lineHeight));
+    expect(tester.getRect(find.byKey(const Key('walk-send'))).bottom, lessThanOrEqualTo(1000));
+    expect(tester.takeException(), isNull, reason: 'nothing overflows');
   });
 
   testWidgets('the font and size chosen in the panel are kept for the next panel', (tester) async {

@@ -17,7 +17,11 @@ import 'window_state.dart';
 /// panel docked at the right edge, beside the window rather than over it, for the conversation.
 class WalkFrame extends StatefulWidget {
   /// Constructor taking the walk and the window it walks through.
-  const WalkFrame({required this.walk, required this.child, this.texts = const WalkPanelTexts(), super.key});
+  const WalkFrame(
+      {required this.walk, required this.child, this.texts = const WalkPanelTexts(), this.commentLines = 4, super.key});
+
+  /// How many lines the panel's field to write in keeps at the least.
+  final int commentLines;
 
   /// The panel's words that an app may say in its own way.
   final WalkPanelTexts texts;
@@ -72,18 +76,27 @@ class _WalkFrameState extends State<WalkFrame> with SingleTickerProviderStateMix
           byTheWalk: true,
           said: 'The walk lost its way: step ${walk.index + 1} points at something not on screen. The '
               'agent looks at the window.'));
-    // As it was left: put away, or in a window of its own.
-    final layout = WalkWindowLayout.read(walkWindowLayoutFile(walkWindowSocket(walk.folder.path)));
-    walk.startHidden(layout.hidden);
-    _wasHidden = layout.hidden;
-    if (!layout.hidden && layout.detached) {
+    // Shown at a fresh start, even where it was put away: a walk that starts unseen was taken for one
+    // that does not start. In a window of its own where it was left in one, and that window answers.
+    final file = walkWindowLayoutFile(walkWindowSocket(walk.folder.path));
+    final layout = WalkWindowLayout.read(file);
+    if (layout.hidden) layout.copyWith(hidden: false).write(file);
+    walk.startHidden(false);
+    if (layout.detached) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) unawaited(_detach());
       });
     }
     // Looked at again and again: what a step points at moves, opens and closes as the person works.
     _looking = Timer.periodic(const Duration(milliseconds: 400), (_) => _look());
+    _exiting = AppLifecycleListener(onExitRequested: () async {
+      _window2?.endWindow();
+      return ui.AppExitResponse.exit;
+    });
   }
+
+  /// Ends the window process with the app, where the app is closed rather than killed.
+  AppLifecycleListener? _exiting;
 
   @override
   void dispose() {
@@ -91,6 +104,7 @@ class _WalkFrameState extends State<WalkFrame> with SingleTickerProviderStateMix
       ..removeListener(_changed)
       ..onLook = null;
     _looking?.cancel();
+    _exiting?.dispose();
     _pulse.dispose();
     _window2?.dispose();
     super.dispose();
@@ -241,7 +255,10 @@ class _WalkFrameState extends State<WalkFrame> with SingleTickerProviderStateMix
   Widget build(BuildContext context) {
     final step = walk.current;
     final view = WalkPanelView.of(walk,
-        pointsAtNothing: step != null && step.at.isNotEmpty && _target == null, unread: _unread, sending: _sending);
+        pointsAtNothing: step != null && step.at.isNotEmpty && _target == null,
+        unread: _unread,
+        sending: _sending,
+        windowFailed: _window2?.failed ?? false);
     final detached = _window2?.open ?? false;
     if (detached) _window2!.show(view);
     return Row(
@@ -325,6 +342,7 @@ class _WalkFrameState extends State<WalkFrame> with SingleTickerProviderStateMix
                 onClear: walk.clearConversation,
                 onClose: walk.hide,
                 texts: widget.texts,
+                commentLines: widget.commentLines,
                 styleFile: File('${walk.folder.path}/panel-style.json'),
               ),
             ),

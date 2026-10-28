@@ -108,10 +108,15 @@ void main() {
 - **Choices of the app's own:** a step can wait for `filled:<key>`. Text fields and checkboxes are
   known; add a test for your own choice widgets to `walkChoices`.
 - **Words:** `WalkPanelTexts` says the panel's few sentences in the app's own way or language.
-- **Showing the walk again:** the person can put the walk away, and it starts put away the next
-  time as well. `walk.hidden` says so, and `walk.show()` brings it back. **An app must offer that**,
-  from a button in its top bar for instance, as the example does: without one, a walk put away
-  stays away.
+- **Showing the walk again:** the person can put the walk away. `walk.hidden` says so, and
+  `walk.show()` brings it back. **An app must offer that**, from a button in its top bar for
+  instance, as the example does: without one, a walk put away stays away until the app starts
+  again, which shows it.
+- **The field to write in** keeps four lines however long a step is; `WalkFrame(commentLines: …)`
+  and `WalkWindowApp(commentLines: …)` give it another number.
+- **The panel's own window** is this app started a second time. One that does not answer within a
+  few seconds, after a rebuild with other code for instance, is ended, and the panel stays beside
+  the window and says so.
 
 ## The walk's folder
 

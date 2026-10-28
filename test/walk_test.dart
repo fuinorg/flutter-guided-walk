@@ -168,16 +168,18 @@ void main() {
     expect(looked, 1, reason: 'one request, one look');
   });
 
-  testWidgets('a walk left put away starts put away, and says so to an agent', (tester) async {
+  testWidgets('a walk left put away starts shown again, and says so to an agent', (tester) async {
     walkFile(<Map<String, String>>[
       <String, String>{'say': 'Click it.', 'at': 'start-work'},
     ]);
-    File('${folder.path}/panel-window.json').writeAsStringSync('{"detached": false, "hidden": true}');
+    final layout = File('${folder.path}/panel-window.json')..writeAsStringSync('{"detached": false, "hidden": true}');
+    File('${folder.path}/status.json').writeAsStringSync('{"hidden": true}');
     walk.read();
     await tester.pumpWidget(window());
     await tester.pump();
-    expect(find.byKey(const Key('walk-panel')), findsNothing);
-    expect(jsonDecode(File('${folder.path}/status.json').readAsStringSync()), containsPair('hidden', true));
+    expect(find.byKey(const Key('walk-panel')), findsOneWidget);
+    expect(jsonDecode(File('${folder.path}/status.json').readAsStringSync()), containsPair('hidden', false));
+    expect(jsonDecode(layout.readAsStringSync()), containsPair('hidden', false));
     await tester.pumpWidget(const SizedBox.shrink());
   });
 

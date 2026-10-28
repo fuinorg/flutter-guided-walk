@@ -22,10 +22,12 @@ class WalkPanelView {
     this.pointsAtNothing = false,
     this.unread = false,
     this.sending = false,
+    this.windowFailed = false,
   });
 
   /// What the walk at hand shows of [walk], with what the frame found on screen.
-  factory WalkPanelView.of(WalkSession walk, {bool pointsAtNothing = false, bool unread = false, bool sending = false}) =>
+  factory WalkPanelView.of(WalkSession walk,
+          {bool pointsAtNothing = false, bool unread = false, bool sending = false, bool windowFailed = false}) =>
       WalkPanelView(
         title: walk.title,
         steps: <String>[for (final each in walk.steps) each.say],
@@ -35,6 +37,7 @@ class WalkPanelView {
         pointsAtNothing: pointsAtNothing,
         unread: unread,
         sending: sending,
+        windowFailed: windowFailed,
       );
 
   /// As read from the socket.
@@ -54,6 +57,7 @@ class WalkPanelView {
         pointsAtNothing: json['pointsAtNothing'] == true,
         unread: json['unread'] == true,
         sending: json['sending'] == true,
+        windowFailed: json['windowFailed'] == true,
       );
 
   /// The walk's title.
@@ -80,6 +84,9 @@ class WalkPanelView {
   /// Whether a comment is being sent.
   final bool sending;
 
+  /// Whether the window of its own was asked for and did not answer, so the panel stayed here.
+  final bool windowFailed;
+
   /// What the step shown now says, or null once the walk is through.
   String? get current => index < steps.length ? steps[index] : null;
 
@@ -96,6 +103,7 @@ class WalkPanelView {
         'pointsAtNothing': pointsAtNothing,
         'unread': unread,
         'sending': sending,
+        'windowFailed': windowFailed,
       };
 }
 
@@ -155,10 +163,15 @@ class WalkPanelTexts {
     this.terminalUnread = 'A terminal is never read and never sent: what is typed there, a password '
         'say, stays here. So the walk does not see what was done in it; say so here when it does not '
         'go on by itself.',
+    this.windowFailed = 'The walk\'s own window did not open, so the walk stays here. Started again, '
+        'the app may open it.',
   });
 
   /// Said while a terminal the walk never reads is on screen.
   final String terminalUnread;
+
+  /// Said when the walk's own window was asked for and did not open.
+  final String windowFailed;
 }
 
 /// The walk's panel: the step, the steps done, the conversation, and the field to write in.
@@ -175,8 +188,12 @@ class WalkPanel extends StatefulWidget {
     this.onClear,
     this.onClose,
     this.texts = const WalkPanelTexts(),
+    this.commentLines = 4,
     super.key,
   });
+
+  /// How many lines the field to write in keeps at the least, however long the step is.
+  final int commentLines;
 
   /// The panel's words that an app may say in its own way.
   final WalkPanelTexts texts;
@@ -406,6 +423,12 @@ class _WalkPanelState extends State<WalkPanel> with SingleTickerProviderStateMix
               ],
             ),
             const SizedBox(height: WalkSpace.tight),
+            if (view.windowFailed)
+              Padding(
+                padding: const EdgeInsets.only(bottom: WalkSpace.tight),
+                child: Text(widget.texts.windowFailed,
+                    key: const Key('walk-window-failed'), style: text.bodySmall?.copyWith(color: scheme.error)),
+              ),
             // The steps already done stay readable: a step that moved on took its words with it, and
             // an address it named could no longer be read.
             if (view.index > 0)
@@ -550,8 +573,9 @@ class _WalkPanelState extends State<WalkPanel> with SingleTickerProviderStateMix
             TextField(
               key: const Key('walk-comment'),
               controller: _comment,
-              minLines: 1,
-              maxLines: 4,
+              // Kept at its lines below everything else: a long step left it one line to write in.
+              minLines: widget.commentLines,
+              maxLines: widget.commentLines * 2,
               decoration: const InputDecoration(
                 labelText: 'What you find',
                 helperText: 'Sent with the window as text and as an image, secrets blanked.',
